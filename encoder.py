@@ -53,7 +53,7 @@ def decode(quart_coded_data):
 
 
 if __name__ == '__main__':
-    encoded = code('42')
+    encoded = code('I Love You')
     print(encoded)
     decoded = decode(encoded)
     print(decoded)
