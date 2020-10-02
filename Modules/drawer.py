@@ -5,9 +5,9 @@ import encoder
 
 color_map = {
     0: (255, 255, 255, 255),
-    1: (255, 0, 0, 255),
-    2: (0, 255, 0, 255),
-    3: (0, 0, 255, 255)
+    1: (53, 79, 96, 255),
+    2: (188, 14, 76, 255),
+    3: (255, 197, 1, 255)
 }
 
 
@@ -49,10 +49,11 @@ def generate_random_data(length):
     return generated_data
 
 
-def write_data(img, data):
+def write_data(size, data):
     data = data + '3333'
     last_row, _, _ = get_position(len(data) + 3)
     data = insert_to_string(data, '1', 0)
+    data = insert_to_string(data, '023', 1)
     data = insert_to_string(data, '0', (last_row - 1) ** 2)
     data = data + generate_random_data(last_row ** 2 - len(data) - 1)
     data += '0'
@@ -60,6 +61,7 @@ def write_data(img, data):
     cells_per_side = int(cells ** 0.5)
     if cells ** 0.5 != cells_per_side:
         cells_per_side = ((cells_per_side + 1) ** 2) ** 0.5
+    img = Image.new('RGBA', (size, size), color=(0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     width, height = img.size
     tri_side = width
@@ -84,13 +86,27 @@ def write_data(img, data):
     return img
 
 
-def build_code(data, size=500):
+def build_code(data, size=500, outline=0.98, path=None, show=False):
+    data = write_data(int(size * outline), data)
     background = get_body(size)
-    img = write_data(background, data)
-    img.show()
-    img.save('Code.png')
+    bounds = Image.new('RGBA', (size, size), color=(0, 0, 0, 0))
+    bounds_width, bounds_height = bounds.size
+    data_width, data_height = data.size
+    offset = ((bounds_width - data_width) // 2, (bounds_height - data_height) * 2 // 3)
+    bounds.paste(data, offset)
+    code_img = Image.alpha_composite(background, bounds)
+    if show:
+        code_img.show()
+    if path:
+        try:
+            code_img.save(path)
+        except Exception:
+            print(f"Can't save code to directory: '{path}'")
+            raise ValueError
+    else:
+        return code_img
 
 
 if __name__ == '__main__':
-    data_to_code = encoder.code('I Love You')
-    build_code(data_to_code, size=1000)
+    data_to_code = encoder.code('https://youtu.be/dQw4w9WgXcQ')
+    build_code(data_to_code, size=1000, path='Code.png', show=True)
