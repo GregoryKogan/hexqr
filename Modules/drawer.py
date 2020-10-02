@@ -12,16 +12,35 @@ color_map = {
 
 
 def get_body(size):
-    img = Image.new('RGBA', (size, size), color=(0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    width, height = img.size
+    img1 = Image.new('RGBA', (size, size), color=(0, 0, 0, 0))
+    draw = ImageDraw.Draw(img1)
+    width, height = img1.size
     tri_side = width
     tri_height = 3**0.5 / 2 * tri_side
-    draw.polygon([(width / 2, height / 2 - tri_height / 2),
-                  (0, height / 2 + tri_height / 2),
-                  (width, height / 2 + tri_height / 2)],
+    pos_x, pos_y = width / 2, height / 2
+    draw.polygon([(pos_x, pos_y - tri_height / 2),
+                  (0, pos_y + tri_height / 2),
+                  (width, pos_y + tri_height / 2)],
+                 fill=(255, 255, 255, 255))
+    k = 0.98
+    img2 = Image.new('RGBA', (int(size*k), int(size*k)), color=(0, 0, 0, 0))
+    draw = ImageDraw.Draw(img2)
+    width, height = img2.size
+    tri_side = width
+    tri_height = 3**0.5 / 2 * tri_side
+    pos_x, pos_y = width / 2, height / 2
+    draw.polygon([(pos_x, pos_y - tri_height / 2),
+                  (0, pos_y + tri_height / 2),
+                  (width, pos_y + tri_height / 2)],
                  fill=(0, 0, 0, 255))
-    return img
+
+    bounds = Image.new('RGBA', (size, size), color=(0, 0, 0, 0))
+    bounds_width, bounds_height = bounds.size
+    img2_width, img2_height = img2.size
+    offset = ((bounds_width - img2_width) // 2, (bounds_height - img2_height) * 2 // 3)
+    bounds.paste(img2, offset)
+    result = Image.alpha_composite(img1, bounds)
+    return result
 
 
 def get_position(index):
@@ -86,7 +105,7 @@ def write_data(size, data):
     return img
 
 
-def build_code(data, size=500, outline=0.98, path=None, show=False):
+def build_code(data, size=500, outline=0.95, path=None, show=False):
     data = write_data(int(size * outline), data)
     background = get_body(size)
     bounds = Image.new('RGBA', (size, size), color=(0, 0, 0, 0))
@@ -109,4 +128,4 @@ def build_code(data, size=500, outline=0.98, path=None, show=False):
 
 if __name__ == '__main__':
     data_to_code = encoder.code('https://youtu.be/dQw4w9WgXcQ')
-    build_code(data_to_code, size=1000, path='Code.png', show=True)
+    build_code(data_to_code, size=1000, path='Resources/Code.png', show=True)
