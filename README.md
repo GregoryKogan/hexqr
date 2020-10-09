@@ -1,1 +1,1 @@
-# Triangle-QR
+# HEXQR
