@@ -10,7 +10,7 @@ def code(data):
         binary = bin(byte)[2::]
         binary = '0' * (8 - len(binary)) + binary
         binary_coded_data += binary
-    quart_coded_data = ''
+    quart_coded_data = '0123'
     for i in range(0, len(binary_coded_data), 2):
         byte_pair = binary_coded_data[i] + binary_coded_data[i + 1]
         if byte_pair == '00':
@@ -23,10 +23,12 @@ def code(data):
             quart_coded_data += '3'
         else:
             raise ValueError
+    quart_coded_data += '3333'
     return quart_coded_data
 
 
 def decode(quart_coded_data):
+    quart_coded_data = quart_coded_data[4:-4:]
     binary_coded_data = ''
     for byte in quart_coded_data:
         if byte == '0':

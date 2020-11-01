@@ -131,7 +131,7 @@ def draw_equilateral_triangle(image, position, width, orientation, color=(255, 2
 
 
 def count_n_for_data(data_length):
-    final_length = data_length + 18
+    final_length = data_length + 18 + 10
     for n in range(1, 25):
         if n * n * 6 >= final_length:
             return n
@@ -174,8 +174,6 @@ def write_data(image, radius, data, color_map=None):
             2: (188, 14, 76, 255),
             3: (255, 197, 1, 255)
         }
-
-    data = '0123' + data
     width = min(image.size)
     n = count_n_for_data(len(data))
     triangle_width = radius / n
@@ -189,7 +187,7 @@ def write_data(image, radius, data, color_map=None):
                 bit = int(data[bits_done])
                 bits_done += 1
             else:
-                bit = random.randint(0, 3)
+                bit = index % 4
             row, position, orientation = position_by_index(index, n)
             coordinate_x, coordinate_y = coordinates_by_position(row, position, n, radius, width)
             image = draw_equilateral_triangle(image, (coordinate_x, coordinate_y), triangle_width, orientation,
@@ -197,10 +195,54 @@ def write_data(image, radius, data, color_map=None):
     return image
 
 
+def count_brightness(color):
+    return (color[0] + color[1] + color[2]) / 3
+
+
+def get_brightest(colormap):
+    brightest = colormap[0]
+    for i in range(1, len(colormap)):
+        if count_brightness(colormap[i]) > count_brightness(brightest):
+            brightest = colormap[i]
+    return brightest
+
+
+def get_darkest(colormap):
+    darkest = colormap[0]
+    for i in range(1, len(colormap)):
+        if count_brightness(colormap[i]) < count_brightness(darkest):
+            darkest = colormap[i]
+    return darkest
+
+
+def count_center(vertexes):
+    x_center = 0
+    y_center = 0
+    for vertex in vertexes:
+        x_center += vertex[0]
+        y_center += vertex[1]
+    x_center /= len(vertexes)
+    y_center /= len(vertexes)
+    return x_center, y_center
+
+
+def calculate_scale_shape(vertexes, scale):
+    x_center, y_center = count_center(vertexes)
+    new_vertexes = []
+    for vertex in vertexes:
+        final_x = (vertex[0] + scale * x_center) / (scale + 1)
+        final_y = (vertex[1] + scale * y_center) / (scale + 1)
+        new_vertexes.append((final_x, final_y))
+    return new_vertexes
+
+
 def draw_markers(image, data_length, radius, color_map=None):
     if not color_map:
         color_map = {
-            1: (53, 79, 96, 255)
+            0: (255, 255, 255, 255),
+            1: (53, 79, 96, 255),
+            2: (188, 14, 76, 255),
+            3: (255, 197, 1, 255)
         }
 
     n = count_n_for_data(data_length)
@@ -213,7 +255,7 @@ def draw_markers(image, data_length, radius, color_map=None):
         row, position, orientation = position_by_index(index, n)
         coordinate_x, coordinate_y = coordinates_by_position(row, position, n, radius, width)
         image = draw_equilateral_triangle(image, (coordinate_x, coordinate_y), triangle_width, orientation,
-                                          color=color_map[1])
+                                          color=get_darkest(color_map))
     other_corners = [
         (1, 2 * n),
         (1, 2 * n + 1),
@@ -231,7 +273,22 @@ def draw_markers(image, data_length, radius, color_map=None):
         row, position, orientation = position_by_index(index, n)
         coordinate_x, coordinate_y = coordinates_by_position(row, position, n, radius, width)
         image = draw_equilateral_triangle(image, (coordinate_x, coordinate_y), triangle_width, orientation,
-                                          color=(255, 255, 255, 255))
+                                          color=get_brightest(color_map))
+
+    center_hexagon_points = [
+        (n, 2 * n - 1),
+        (n, 2 * n),
+        (n, 2 * n + 1),
+        (n + 1, 2 * n - 1),
+        (n + 1, 2 * n),
+        (n + 1, 2 * n + 1)
+    ]
+    for point in center_hexagon_points:
+        index = index_by_position(point[0], point[1], n)
+        row, position, orientation = position_by_index(index, n)
+        coordinate_x, coordinate_y = coordinates_by_position(row, position, n, radius, width)
+        image = draw_equilateral_triangle(image, (coordinate_x, coordinate_y), triangle_width, orientation,
+                                          color=get_darkest(color_map))
 
     height = 3 ** 0.5 / 2 * triangle_width
     top_point = list(coordinates_by_position(n, 2 * n - 1, n, radius, width))
@@ -250,7 +307,9 @@ def draw_markers(image, data_length, radius, color_map=None):
     center_triangle_vertexes = [top_point, left_point, right_point]
 
     draw = ImageDraw.Draw(image)
-    draw.polygon(center_triangle_vertexes, fill=(255, 255, 255, 255), outline=(0, 0, 0, 255))
+    draw.polygon(center_triangle_vertexes, fill=(0, 0, 0, 255))
+    draw.polygon(calculate_scale_shape(center_triangle_vertexes, 0.1), fill=(255, 255, 255, 255))
+    draw.polygon(calculate_scale_shape(center_triangle_vertexes, 0.2), fill=(0, 0, 0, 255))
     return image
 
 
