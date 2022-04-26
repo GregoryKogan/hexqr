@@ -39,8 +39,7 @@ def find_main_shape(image, vertex_num):
         if len(approx) == vertex_num:
             shapes.append(approx)
     shapes.sort(key=cv.contourArea, reverse=True)
-    main_shape = shapes[0]
-    return main_shape
+    return shapes[0]
 
 
 def find_shapes(image, vertex_num):
@@ -71,21 +70,27 @@ def get_4_points(hexagon):
 
 
 def get_target_points(center_x, center_y, radius):
-    target_points = [[center_x + math.cos(0) * radius,
-                      center_y - math.sin(0) * radius], [center_x + math.cos(math.pi / 3) * radius,
-                                                         center_y - math.sin(math.pi / 3) * radius],
-                     [center_x + math.cos(math.pi) * radius,
-                      center_y - math.sin(math.pi) * radius], [center_x + math.cos(math.pi / 3 * 4) * radius,
-                                                               center_y - math.sin(math.pi / 3 * 4) * radius]]
-    return target_points
+    return [
+        [center_x + math.cos(0) * radius, center_y - math.sin(0) * radius],
+        [
+            center_x + math.cos(math.pi / 3) * radius,
+            center_y - math.sin(math.pi / 3) * radius,
+        ],
+        [
+            center_x + math.cos(math.pi) * radius,
+            center_y - math.sin(math.pi) * radius,
+        ],
+        [
+            center_x + math.cos(math.pi / 3 * 4) * radius,
+            center_y - math.sin(math.pi / 3 * 4) * radius,
+        ],
+    ]
 
 
 def convert_4_points_to_np_array(input_list):
-    result = np.array([input_list[0],
-                       input_list[1],
-                       input_list[2],
-                       input_list[3]]).astype(np.float32)
-    return result
+    return np.array(
+        [input_list[0], input_list[1], input_list[2], input_list[3]]
+    ).astype(np.float32)
 
 
 def warp(image, main_hex):
@@ -101,8 +106,7 @@ def warp(image, main_hex):
     target_points = convert_4_points_to_np_array(target_points)
 
     warp_matrix = cv.getPerspectiveTransform(source_points, target_points)
-    warped_image = cv.warpPerspective(image, warp_matrix, (image.shape[1], image.shape[0]))
-    return warped_image
+    return cv.warpPerspective(image, warp_matrix, (image.shape[1], image.shape[0]))
 
 
 def distance(point_1, point_2):
@@ -110,8 +114,7 @@ def distance(point_1, point_2):
     y1 = point_1[1]
     x2 = point_2[0]
     y2 = point_2[1]
-    dist = ((x2 - x1)**2 + (y2 - y1)**2)**0.5
-    return dist
+    return ((x2 - x1)**2 + (y2 - y1)**2)**0.5
 
 
 def get_side_length(triangle):
@@ -123,18 +126,13 @@ def get_side_length(triangle):
 
 
 def count_average(data):
-    sum_of_all = 0
-    for element in data:
-        sum_of_all += element
+    sum_of_all = sum(data)
     return sum_of_all / len(data)
 
 
 def count_average_deviation(data):
     average_value = count_average(data)
-    sum_of_deviations = 0
-    for element in data:
-        deviation = abs(average_value - element)
-        sum_of_deviations += deviation
+    sum_of_deviations = sum(abs(average_value - element) for element in data)
     return sum_of_deviations / len(data)
 
 
@@ -147,16 +145,17 @@ def count_cell_width(image):
         cell_width_values.append(side_length)
     average_value = count_average(cell_width_values)
     average_deviation = count_average_deviation(cell_width_values)
-    correct_cell_width_values = []
-    for element in cell_width_values:
-        if abs(average_value - element) < average_deviation:
-            correct_cell_width_values.append(element)
+    correct_cell_width_values = [
+        element
+        for element in cell_width_values
+        if abs(average_value - element) < average_deviation
+    ]
+
     average_cell_width = count_average(correct_cell_width_values)
     radius = image.shape[0] / 2
     n = radius / (average_cell_width * 1.1)
     n = round(n)
-    cell_width = radius / n
-    return cell_width
+    return radius / n
 
 
 def count_6_points(center_x, center_y, radius):
@@ -204,8 +203,7 @@ def find_odd_color(colors):
 
 def rotate_image_by_angle(image, angle):
     import imutils
-    rotated = imutils.rotate(image, angle)
-    return rotated
+    return imutils.rotate(image, angle)
 
 
 def rotate(image):
