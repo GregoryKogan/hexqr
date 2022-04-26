@@ -43,15 +43,15 @@ def decode(quart_coded_data):
             raise ValueError
     coded_data = []
     for bit_chunk in range(0, len(binary_coded_data), 8):
-        chunk_data = ''
-        for bit_ind in range(8):
-            chunk_data += binary_coded_data[bit_chunk + bit_ind]
+        chunk_data = ''.join(
+            binary_coded_data[bit_chunk + bit_ind] for bit_ind in range(8)
+        )
+
         value = int(chunk_data, 2)
         coded_data.append(value)
     coded_data = bytes(coded_data)
     rsc = RSCodec(10)
-    decoded_data = rsc.decode(coded_data)[0].decode()
-    return decoded_data
+    return rsc.decode(coded_data)[0].decode()
 
 
 if __name__ == '__main__':

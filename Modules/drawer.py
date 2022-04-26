@@ -6,8 +6,7 @@ import random
 
 # Returns square black RGBA image of given width
 def get_square_image(width):
-    img = Image.new('RGBA', (width, width), color=(0, 0, 0, 0))
-    return img
+    return Image.new('RGBA', (width, width), color=(0, 0, 0, 0))
 
 
 # Draws hexagon on given image of given radius and color
@@ -46,16 +45,15 @@ def position_by_index(index, n):
             elif current_row != n + 1:
                 cells_at_current_row -= 2
 
-    if current_row <= n:
-        if current_pos % 2 == 0:
-            orientation = 'D'
-        else:
-            orientation = 'U'
+    if (
+        current_row <= n
+        and current_pos % 2 == 0
+        or current_row > n
+        and current_pos % 2 != 0
+    ):
+        orientation = 'D'
     else:
-        if current_pos % 2 == 0:
-            orientation = 'U'
-        else:
-            orientation = 'D'
+        orientation = 'U'
     return current_row, current_pos, orientation
 
 
@@ -132,10 +130,7 @@ def draw_equilateral_triangle(image, position, width, orientation, color=(255, 2
 
 def count_n_for_data(data_length):
     final_length = data_length + 18 + 10
-    for n in range(1, 25):
-        if n * n * 6 >= final_length:
-            return n
-    return None
+    return next((n for n in range(1, 25) if n * n * 6 >= final_length), None)
 
 
 def get_avoid_indexes(n):
